@@ -33,7 +33,6 @@ import (
 	"sync"
 	"time"
 
-	sqlite_vec "github.com/asg017/sqlite-vec-go-bindings/cgo"
 	"go.uber.org/zap"
 )
 
@@ -299,7 +298,7 @@ func generateSerializedEmbedding(ctx context.Context, dataType string, data []by
 	if err != nil {
 		return nil, fmt.Errorf("unmarshaling JSON embedding: %w", err)
 	}
-	v, err := sqlite_vec.SerializeFloat32(embedding)
+	v, err := sqliteVecSerializeFloat32(embedding)
 	if err != nil {
 		return nil, fmt.Errorf("serializing embedding: %w", err)
 	}
