@@ -95,14 +95,29 @@ on('shown.bs.modal', '#modal-plan-loading', async event => {
 	console.log("IMPORT PLAN:", plan);
 
 	if (!plan || !plan.files) {
-		// TODO: show modal saying that nothing was found
+		notify({
+			type: 'warning',
+			title: 'No Importable Files Found',
+			message: 'Timelinize could not find any recognized data sources in the selected path. Try selecting the parent folder and enabling Recursive.'
+		});
 		return;
 	}
 
+	let recognizedFileCount = 0;
+
 	for (const file of plan.files) {
+		if (!file?.data_sources?.length) {
+			continue;
+		}
+
 		// one drawback of our current UI is we only make available the first data source that matches
 		// (but so far, it is rare for multiple to match, especially with near-equivalent confidence, I think)
 		const recognition = file.data_sources[0];
+		if (!recognition?.data_source) {
+			continue;
+		}
+
+		recognizedFileCount++;
 		const ds = recognition.data_source;
 		let dsGroupElem = $(`.file-import-plan-dsgroup.ds-${ds.name}`);
 
@@ -197,6 +212,15 @@ on('shown.bs.modal', '#modal-plan-loading', async event => {
 
 		dsGroupElem.filenames.push(file.filename);
 		$('.import-dsgroup-files tbody', dsGroupElem).append(row);
+	}
+
+	if (recognizedFileCount === 0) {
+		notify({
+			type: 'warning',
+			title: 'No Recognized Data Sources',
+			message: 'The selected files were scanned, but none matched a supported importer. For Spotify, select the folder containing Streaming_History_Audio_*.json files.'
+		});
+		return;
 	}
 
 	// once all the tables are rendered, make them sortable
